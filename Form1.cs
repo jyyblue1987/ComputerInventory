@@ -135,11 +135,45 @@ namespace ComputerInventory
                                 AtHand = grp.Sum(r => r.Field<int>("Qty") * (r.Field<string>("Progress") == "" ? 1 : 0)),
                             };
 
+
+            WorkBook xlsxWorkbook = WorkBook.Create(ExcelFileFormat.XLSX);
+            xlsxWorkbook.Metadata.Author = "IronXL";
+            //Add a blank WorkSheet
+            WorkSheet xlsSheet = xlsxWorkbook.CreateWorkSheet("summary");
+            //Add data and styles to the new worksheet
+            xlsSheet["A1"].Value = "Shipment ID";
+            xlsSheet["B1"].Value = "Asset Type";
+            xlsSheet["C1"].Value = "Pallet";
+            xlsSheet["D1"].Value = "Shop";
+            xlsSheet["E1"].Value = "Scrap";
+            xlsSheet["F1"].Value = "At Hand";
+
+
+            String prevShipment = "";
+            String ship_id = "";
+            row = 2;
             foreach( var p in summary)
             {
+                if (prevShipment != p.Shipment)
+                    ship_id = p.Shipment;
+                else
+                    ship_id = "";
+
+                xlsSheet["A" + row].Value = ship_id;
+                xlsSheet["B" + row].Value = p.Asset;
+                xlsSheet["C" + row].Value = p.Pallet;
+                xlsSheet["D" + row].Value = p.Shop;
+                xlsSheet["E" + row].Value = p.Scrap;
+                xlsSheet["F" + row].Value = p.AtHand;
+
                 Console.WriteLine("{0} - {1} - {2} - {3} - {4}", p.Shipment, p.Asset, p.Pallet, p.Shop, p.Scrap, p.AtHand);
+
+                row++;
             }
-            
+
+            //Save the excel file
+            xlsxWorkbook.SaveAs("D:\\total_summary.xlsx");
+
         }
     }
 

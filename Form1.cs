@@ -1,4 +1,8 @@
 ﻿using ExcelDataReader;
+using NPOI.HSSF.Util;
+using NPOI.SS.UserModel;
+using NPOI.SS.Util;
+using NPOI.XSSF.UserModel;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -77,8 +81,6 @@ namespace ComputerInventory
             txtResult.Text = "";
 
 
-            int row = 2;
-
             DataTable dt = new DataTable();
 
             dt.Clear();
@@ -117,8 +119,6 @@ namespace ComputerInventory
                             record["Shipment"] = shipment.Trim();
 
                             dt.Rows.Add(record);
-
-                            row++;
                         }
                         break;
                     } while (reader.NextResult());
@@ -148,105 +148,129 @@ namespace ComputerInventory
 
 
             //WorkBook xlsxWorkbook = WorkBook.Create(ExcelFileFormat.XLSX);
-            //xlsxWorkbook.Metadata.Author = "Company";
-            ////Add a blank WorkSheet
-            //WorkSheet xlsSheet = xlsxWorkbook.CreateWorkSheet("summary");
-
-            ////Add data and styles to the new worksheet
-            //xlsSheet["A1"].Value = "Shipment ID";
-            //xlsSheet["B1"].Value = "Asset Type";
-            //xlsSheet["C1"].Value = "Pallet";
-            //xlsSheet["D1"].Value = "Shop";
-            //xlsSheet["E1"].Value = "Scrap";
-            //xlsSheet["F1"].Value = "At Hand";
-
-
-            //WorkBook xlsxWorkbook_client = null;
-            //WorkSheet xlsSheet_client = null;
-
-
-
-            //String prevShipment = "";
-            //String ship_id = "";
-            //row = 2;
-            //foreach( var p in summary)
-            //{
-            //    if (prevShipment != p.Shipment)
-            //    {
-            //        ship_id = p.Shipment;
-
-            //        try
-            //        {
-            //            if(xlsxWorkbook_client != null)
-            //            {
-            //                xlsxWorkbook_client.SaveAs(destFolder + "\\" + prevShipment + ".xlsx");
-            //                xlsxWorkbook_client.Close();
-            //            }
-            //        }
-            //        catch (Exception ex)
-            //        {
-            //        }
-
-            //        xlsxWorkbook_client = WorkBook.Create(ExcelFileFormat.XLSX);
-            //        xlsxWorkbook_client.Metadata.Author = "Company";
-            //        //Add a blank WorkSheet
-            //        xlsSheet_client = xlsxWorkbook_client.CreateWorkSheet("summary");
-
-            //        //Add data and styles to the new worksheet
-            //        xlsSheet_client["A1"].Value = "Shipment ID";
-            //        xlsSheet_client["B1"].Value = "Asset Type";
-            //        xlsSheet_client["C1"].Value = "Pallet";
-            //        xlsSheet_client["D1"].Value = "Shop";
-            //        xlsSheet_client["E1"].Value = "Scrap";
-            //        xlsSheet_client["F1"].Value = "At Hand";
-            //    }
-            //    else
-            //        ship_id = "";
-
-            //    xlsSheet["A" + row].Value = ship_id;
-            //    xlsSheet["B" + row].Value = p.Asset;
-            //    xlsSheet["C" + row].Value = p.Pallet;
-            //    xlsSheet["D" + row].Value = p.Shop;
-            //    xlsSheet["E" + row].Value = p.Scrap;
-            //    xlsSheet["F" + row].Value = p.AtHand;
-
-            //    xlsSheet_client["A" + row].Value = ship_id;
-            //    xlsSheet_client["B" + row].Value = p.Asset;
-            //    xlsSheet_client["C" + row].Value = p.Pallet;
-            //    xlsSheet_client["D" + row].Value = p.Shop;
-            //    xlsSheet_client["E" + row].Value = p.Scrap;
-            //    xlsSheet_client["F" + row].Value = p.AtHand;
-
-            //    prevShipment = p.Shipment;
-
-            //    Console.WriteLine("{0} - {1} - {2} - {3} - {4}", p.Shipment, p.Asset, p.Pallet, p.Shop, p.Scrap, p.AtHand);
-
-            //    row++;
-            //}
-
-            //try
-            //{
-            //    if (xlsxWorkbook_client != null)
-            //    {
-            //        xlsxWorkbook_client.SaveAs(destFolder + "\\" + prevShipment + ".xlsx");
-            //        xlsxWorkbook_client.Close();
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //}
+            IWorkbook workbook = new XSSFWorkbook();
+            ISheet sheet = workbook.CreateSheet("summary");
+            IRow row = sheet.CreateRow(0);
+            ICell cell = null;
+            cell = row.CreateCell(0);
+            cell.SetCellValue("Shipment ID");
+            cell = row.CreateCell(1);
+            cell.SetCellValue("Asset Type");
+            cell = row.CreateCell(2);
+            cell.SetCellValue("Pallet");
+            cell = row.CreateCell(3);
+            cell.SetCellValue("Shop");
+            cell = row.CreateCell(4);
+            cell.SetCellValue("Scrap");
+            cell = row.CreateCell(5);
+            cell.SetCellValue("At Hand");
 
 
-            ////Save the excel file
-            //try
-            //{
-            //    xlsxWorkbook.SaveAs(destFolder + "\\total_summary.xlsx");
-            //    xlsxWorkbook.Close();
-            //    txtResult.Text = "Summary is generated!!!";
-            //} catch(Exception e)
-            //{
-            //    txtResult.Text = "Output Directory Error!";
-            //}            
+            IWorkbook xlsxWorkbook_client = null;
+            ISheet xlsSheet_client = null;
+
+            String prevShipment = "";
+            String ship_id = "";
+            int total_row = 0, client_row = 0;
+            foreach (var p in summary)
+            {
+                if (prevShipment != p.Shipment)
+                {
+                    ship_id = p.Shipment;
+
+                    try
+                    {
+                        if (prevShipment != "") 
+                        {
+                            using (var fs1 = new FileStream(destFolder + "\\" + prevShipment + ".xlsx", FileMode.Create, FileAccess.Write))
+                            {
+                                xlsxWorkbook_client.Write(fs1);
+                                fs1.Close();
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                    }
+
+                    xlsxWorkbook_client = new XSSFWorkbook(); ;
+                    //Add a blank WorkSheet
+                    xlsSheet_client = xlsxWorkbook_client.CreateSheet("summary");
+
+                    //Add data and styles to the new worksheet
+                    row = xlsSheet_client.CreateRow(0);
+                    cell = row.CreateCell(0);
+                    cell.SetCellValue("Shipment ID");
+                    cell = row.CreateCell(1);
+                    cell.SetCellValue("Asset Type");
+                    cell = row.CreateCell(2);
+                    cell.SetCellValue("Pallet");
+                    cell = row.CreateCell(3);
+                    cell.SetCellValue("Shop");
+                    cell = row.CreateCell(4);
+                    cell.SetCellValue("Scrap");
+                    cell = row.CreateCell(5);
+                    cell.SetCellValue("At Hand");
+
+                    client_row = 0;
+
+                }
+                else
+                    ship_id = "";
+
+                client_row++;
+
+                row = xlsSheet_client.CreateRow(client_row);
+                cell = row.CreateCell(0);
+                cell.SetCellValue(ship_id);
+                cell = row.CreateCell(1);
+                cell.SetCellValue(p.Asset);
+                cell = row.CreateCell(2);
+                cell.SetCellValue(p.Pallet);
+                cell = row.CreateCell(3);
+                cell.SetCellValue(p.Shop);
+                cell = row.CreateCell(4);
+                cell.SetCellValue(p.Scrap);
+                cell = row.CreateCell(5);
+                cell.SetCellValue(p.AtHand);
+
+                total_row++;
+                row = sheet.CreateRow(total_row);
+                cell = row.CreateCell(0);
+                cell.SetCellValue(ship_id);
+                cell = row.CreateCell(1);
+                cell.SetCellValue(p.Asset);
+                cell = row.CreateCell(2);
+                cell.SetCellValue(p.Pallet);
+                cell = row.CreateCell(3);
+                cell.SetCellValue(p.Shop);
+                cell = row.CreateCell(4);
+                cell.SetCellValue(p.Scrap);
+                cell = row.CreateCell(5);
+                cell.SetCellValue(p.AtHand);
+
+                prevShipment = p.Shipment;
+
+                Console.WriteLine("{0} - {1} - {2} - {3} - {4}", p.Shipment, p.Asset, p.Pallet, p.Shop, p.Scrap, p.AtHand);
+            }
+
+            try
+            {
+                using (var fs1 = new FileStream(destFolder + "\\" + prevShipment + ".xlsx", FileMode.Create, FileAccess.Write))
+                {
+                    xlsxWorkbook_client.Write(fs1);
+                    fs1.Close();
+                }
+            }
+            catch (Exception e)
+            {
+            }
+
+            using (var fs = new FileStream(destFolder + "\\total_summary.xlsx", FileMode.Create, FileAccess.Write))
+            {
+                workbook.Write(fs);
+                txtResult.Text = "Summary is generated!!!";
+            }
         }
 
         private void btnOpen_Click(object sender, EventArgs e)

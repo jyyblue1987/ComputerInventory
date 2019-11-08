@@ -89,40 +89,46 @@ namespace ComputerInventory
             dt.Columns.Add("Qty", typeof(int));
             dt.Columns.Add("Progress");
             dt.Columns.Add("Shipment");
-            
-            using (var stream = File.Open(sourcePath, FileMode.Open, FileAccess.Read))
+
+            try
             {
-                // Auto-detect format, supports:
-                //  - Binary Excel files (2.0-2003 format; *.xls)
-                //  - OpenXml Excel files (2007 format; *.xlsx)
-                using (var reader = ExcelReaderFactory.CreateReader(stream))
+                using (var stream = File.Open(sourcePath, FileMode.Open, FileAccess.Read))
                 {
-                    // 1. Use the reader methods
-                    do
+                    // Auto-detect format, supports:
+                    //  - Binary Excel files (2.0-2003 format; *.xls)
+                    //  - OpenXml Excel files (2007 format; *.xlsx)
+                    using (var reader = ExcelReaderFactory.CreateReader(stream))
                     {
-                        reader.Read();
-                        while (reader.Read())
+                        // 1. Use the reader methods
+                        do
                         {
-                            String date = GetString(reader, 0);
-                            if (date == "")
-                                break;
+                            reader.Read();
+                            while (reader.Read())
+                            {
+                                String date = GetString(reader, 0);
+                                if (date == "")
+                                    break;
 
-                            String asset_type = GetString(reader, 1);
-                            int qty = GetInt(reader, 13);
-                            String  progress = GetString(reader, 16);                            
-                            String shipment = GetString(reader, 19);                            
-                            
-                            DataRow record = dt.NewRow();
-                            record["Asset"] = asset_type;
-                            record["Qty"] = qty;
-                            record["Progress"] = progress;
-                            record["Shipment"] = shipment.Trim();
+                                String asset_type = GetString(reader, 1);
+                                int qty = GetInt(reader, 13);
+                                String progress = GetString(reader, 16);
+                                String shipment = GetString(reader, 19);
 
-                            dt.Rows.Add(record);
-                        }
-                        break;
-                    } while (reader.NextResult());
+                                DataRow record = dt.NewRow();
+                                record["Asset"] = asset_type;
+                                record["Qty"] = qty;
+                                record["Progress"] = progress;
+                                record["Shipment"] = shipment.Trim();
+
+                                dt.Rows.Add(record);
+                            }
+                            break;
+                        } while (reader.NextResult());
+                    }
                 }
+            } catch(Exception e)
+            {
+                txtResult.Text = e.ToString();
             }
                       
             
@@ -264,12 +270,20 @@ namespace ComputerInventory
             }
             catch (Exception e)
             {
+                txtResult.Text = e.ToString();
             }
 
-            using (var fs = new FileStream(destFolder + "\\total_summary.xlsx", FileMode.Create, FileAccess.Write))
+            try
             {
-                workbook.Write(fs);
-                txtResult.Text = "Summary is generated!!!";
+                using (var fs = new FileStream(destFolder + "\\total_summary.xlsx", FileMode.Create, FileAccess.Write))
+                {
+                    workbook.Write(fs);
+                    txtResult.Text = "Summary is generated!!!";
+                }
+            }
+            catch (Exception e)
+            {
+                txtResult.Text = e.ToString();
             }
         }
 
@@ -290,9 +304,12 @@ namespace ComputerInventory
         {
             FolderBrowserDialog folderDialog = new FolderBrowserDialog();
             folderDialog.ShowNewFolderButton = true;
+            folderDialog.SelectedPath = Properties.Settings.Default.Folder_Path;
 
             if (folderDialog.ShowDialog() == DialogResult.OK)
             {
+                Properties.Settings.Default.Folder_Path = folderDialog.SelectedPath;
+                Properties.Settings.Default.Save();
                 txtOutputPath.Text = folderDialog.SelectedPath;
             }
             

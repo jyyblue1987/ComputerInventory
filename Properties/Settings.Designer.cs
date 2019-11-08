@@ -22,5 +22,17 @@ namespace ComputerInventory.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string Folder_Path {
+            get {
+                return ((string)(this["Folder_Path"]));
+            }
+            set {
+                this["Folder_Path"] = value;
+            }
+        }
     }
 }

@@ -13,12 +13,10 @@ namespace ComputerInventory
 {
     public partial class Form1 : Form
     {
-        DataTable dt = new DataTable();
 
         public Form1()
         {
-            InitializeComponent();
-            InitData();
+            InitializeComponent();            
         }
 
         public static string ExcelColumnFromNumber(int column)
@@ -47,10 +45,22 @@ namespace ComputerInventory
             return retVal;
         }
 
-        public void InitData()
+        public void GenerateSummary(String sourcePath, String destFolder)
         {
+            txtResult.Text = ""; 
+
+            WorkBook workbook = null;
+
             //Supported spreadsheet formats for reading include: XLSX, XLS, CSV and TSV
-            WorkBook workbook = WorkBook.Load("D:\\master.xlsx");
+            try
+            {
+                workbook = WorkBook.Load(sourcePath);
+            } catch(Exception e)
+            {
+                txtResult.Text = "Source File Error!";
+                return;
+            }
+                        
             WorkSheet sheet = workbook.WorkSheets.First();
 
             String asset_type_col = "B";
@@ -84,8 +94,10 @@ namespace ComputerInventory
 
             int row = 2;
 
-            dt.Clear();
+            DataTable dt = new DataTable();
 
+            dt.Clear();
+            
             dt.Columns.Add("Asset");
             dt.Columns.Add("Qty", typeof(int));
             dt.Columns.Add("Progress");
@@ -101,9 +113,7 @@ namespace ComputerInventory
                 int qty = sheet[qty_col + row].IntValue;
                 String progress = sheet[progress_col + row].StringValue;
                 String shipment = sheet[shipment_col + row].StringValue;
-
-
-
+                
                 DataRow record = dt.NewRow();
                 record["Asset"] = asset_type;
                 record["Qty"] = qty;
@@ -115,8 +125,8 @@ namespace ComputerInventory
                 row++;
             }
 
-            DataView view = new DataView(dt);
-            DataTable distinctValues = view.ToTable(true, "Shipment");
+            //DataView view = new DataView(dt);
+            //DataTable distinctValues = view.ToTable(true, "Shipment");
 
             //foreach (DataRow record in distinctValues.Rows)
             //{
@@ -166,14 +176,52 @@ namespace ComputerInventory
                 xlsSheet["E" + row].Value = p.Scrap;
                 xlsSheet["F" + row].Value = p.AtHand;
 
+                prevShipment = p.Shipment;
+
                 Console.WriteLine("{0} - {1} - {2} - {3} - {4}", p.Shipment, p.Asset, p.Pallet, p.Shop, p.Scrap, p.AtHand);
 
                 row++;
             }
 
             //Save the excel file
-            xlsxWorkbook.SaveAs("D:\\total_summary.xlsx");
+            try
+            {
+                xlsxWorkbook.SaveAs(destFolder + "\\total_summary.xlsx");
+                txtResult.Text = "Summary is generated!!!";
+            } catch(Exception e)
+            {
+                txtResult.Text = "Output Directory Error!";
+            }            
+        }
 
+        private void btnOpen_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.RestoreDirectory = true;
+            openFileDialog.Title = "Select Master File";
+            openFileDialog.DefaultExt = "xlsx";
+            
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                txtPath.Text = openFileDialog.FileName;
+            }
+        }
+
+        private void btnOutput_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog folderDialog = new FolderBrowserDialog();
+            folderDialog.ShowNewFolderButton = true;
+
+            if (folderDialog.ShowDialog() == DialogResult.OK)
+            {
+                txtOutputPath.Text = folderDialog.SelectedPath;
+            }
+            
+        }
+
+        private void btnGenerate_Click(object sender, EventArgs e)
+        {            
+            GenerateSummary(txtPath.Text, txtOutputPath.Text);
         }
     }
 

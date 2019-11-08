@@ -59,5 +59,14 @@ namespace ComputerInventory.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &quot;&quot;.
+        /// </summary>
+        internal static string Folder_Path {
+            get {
+                return ResourceManager.GetString("Folder_Path", resourceCulture);
+            }
+        }
     }
 }

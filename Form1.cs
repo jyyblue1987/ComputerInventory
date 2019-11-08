@@ -86,8 +86,8 @@ namespace ComputerInventory
 
             dt.Clear();
 
-            dt.Columns.Add("Asset Type");
-            dt.Columns.Add("Qty");
+            dt.Columns.Add("Asset");
+            dt.Columns.Add("Qty", typeof(int));
             dt.Columns.Add("Progress");
             dt.Columns.Add("Shipment");
 
@@ -102,10 +102,10 @@ namespace ComputerInventory
                 String progress = sheet[progress_col + row].StringValue;
                 String shipment = sheet[shipment_col + row].StringValue;
 
-                
+
 
                 DataRow record = dt.NewRow();
-                record["Asset Type"] = asset_type;
+                record["Asset"] = asset_type;
                 record["Qty"] = qty;
                 record["Progress"] = progress;
                 record["Shipment"] = shipment;
@@ -118,10 +118,28 @@ namespace ComputerInventory
             DataView view = new DataView(dt);
             DataTable distinctValues = view.ToTable(true, "Shipment");
 
-            foreach(DataRow record in distinctValues.Rows )
+            //foreach (DataRow record in distinctValues.Rows)
+            //{
+            //    Console.WriteLine(record["Shipment"]);
+
+               
+            //}
+
+            var summary = from rec in dt.AsEnumerable()
+                            group rec by new { Shipment = rec.Field<string>("Shipment"), Asset = rec.Field<string>("Asset"), } into grp
+                            select new
+                            {
+                                Shipment = grp.Key.Shipment,
+                                Asset = grp.Key.Asset,
+                                Pallet = grp.Sum(r => r.Field<int>("Qty"))
+                            };
+
+            foreach( var p in summary)
             {
-                Console.WriteLine(record["Shipment"]);
+                Console.WriteLine("{0} - {1} -{2}", p.Shipment, p.Asset, p.Pallet);
             }
+            Console.WriteLine(summary);
+
         }
     }
 

@@ -13,6 +13,8 @@ namespace ComputerInventory
 {
     public partial class Form1 : Form
     {
+        DataTable dt = new DataTable();
+
         public Form1()
         {
             InitializeComponent();
@@ -81,7 +83,15 @@ namespace ComputerInventory
             int cellValue = sheet["A2"].IntValue;
 
             int row = 2;
-            while(true)
+
+            dt.Clear();
+
+            dt.Columns.Add("Asset Type");
+            dt.Columns.Add("Qty");
+            dt.Columns.Add("Progress");
+            dt.Columns.Add("Shipment");
+
+            while (true)
             {
                 String date = sheet["A" + row].StringValue;
                 if (date == "")
@@ -92,9 +102,25 @@ namespace ComputerInventory
                 String progress = sheet[progress_col + row].StringValue;
                 String shipment = sheet[shipment_col + row].StringValue;
 
-                Console.WriteLine("{0}, {1}, {2}, {3}", asset_type, qty, progress, shipment);
+                
+
+                DataRow record = dt.NewRow();
+                record["Asset Type"] = asset_type;
+                record["Qty"] = qty;
+                record["Progress"] = progress;
+                record["Shipment"] = shipment;
+
+                dt.Rows.Add(record);
 
                 row++;
+            }
+
+            DataView view = new DataView(dt);
+            DataTable distinctValues = view.ToTable(true, "Shipment");
+
+            foreach(DataRow record in distinctValues.Rows )
+            {
+                Console.WriteLine(record["Shipment"]);
             }
         }
     }

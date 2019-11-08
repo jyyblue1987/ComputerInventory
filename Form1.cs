@@ -81,6 +81,7 @@ namespace ComputerInventory
             txtResult.Text = "";
 
 
+
             DataTable dt = new DataTable();
 
             dt.Clear();
@@ -102,17 +103,38 @@ namespace ComputerInventory
                         // 1. Use the reader methods
                         do
                         {
+                            // find header number
                             reader.Read();
+                            //int[] column_index = { 1, 13, 16, 19 };
+                            int[] column_index = { 0, 0, 0, 0 };
+                            var key_list = txtKey.Text.Split(',');
+                            for(var i = 0; i < 100; i++)
+                            {
+                                String val = GetString(reader, i).ToLower();
+                                if (val == "")
+                                    break;
+
+                                for(var j = 0; j < key_list.Length; j++ )
+                                {
+                                    var key = key_list[j].Trim().ToLower();
+                                    if( val.Contains(key) )
+                                    {
+                                        column_index[j] = i;
+                                        break;
+                                    }
+                                }
+                            }
+
                             while (reader.Read())
                             {
                                 String date = GetString(reader, 0);
                                 if (date == "")
                                     break;
 
-                                String asset_type = GetString(reader, 1);
-                                int qty = GetInt(reader, 13);
-                                String progress = GetString(reader, 16);
-                                String shipment = GetString(reader, 19);
+                                String asset_type = GetString(reader, column_index[0]);
+                                int qty = GetInt(reader, column_index[1]);
+                                String progress = GetString(reader, column_index[2]);
+                                String shipment = GetString(reader, column_index[3]);
 
                                 DataRow record = dt.NewRow();
                                 record["Asset"] = asset_type;

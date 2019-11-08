@@ -36,11 +36,13 @@
             this.txtResult = new System.Windows.Forms.Label();
             this.btnGenerate = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
+            this.txtKey = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // btnOpen
             // 
-            this.btnOpen.Location = new System.Drawing.Point(616, 56);
+            this.btnOpen.Location = new System.Drawing.Point(616, 70);
             this.btnOpen.Name = "btnOpen";
             this.btnOpen.Size = new System.Drawing.Size(42, 34);
             this.btnOpen.TabIndex = 0;
@@ -51,7 +53,7 @@
             // txtPath
             // 
             this.txtPath.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtPath.Location = new System.Drawing.Point(153, 59);
+            this.txtPath.Location = new System.Drawing.Point(153, 73);
             this.txtPath.Name = "txtPath";
             this.txtPath.Size = new System.Drawing.Size(457, 29);
             this.txtPath.TabIndex = 1;
@@ -60,7 +62,7 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(101, 65);
+            this.label1.Location = new System.Drawing.Point(101, 79);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(46, 20);
             this.label1.TabIndex = 2;
@@ -68,7 +70,7 @@
             // 
             // btnOutput
             // 
-            this.btnOutput.Location = new System.Drawing.Point(616, 104);
+            this.btnOutput.Location = new System.Drawing.Point(616, 118);
             this.btnOutput.Name = "btnOutput";
             this.btnOutput.Size = new System.Drawing.Size(42, 34);
             this.btnOutput.TabIndex = 0;
@@ -79,7 +81,7 @@
             // txtOutputPath
             // 
             this.txtOutputPath.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtOutputPath.Location = new System.Drawing.Point(153, 107);
+            this.txtOutputPath.Location = new System.Drawing.Point(153, 121);
             this.txtOutputPath.Name = "txtOutputPath";
             this.txtOutputPath.Size = new System.Drawing.Size(457, 29);
             this.txtOutputPath.TabIndex = 1;
@@ -88,7 +90,7 @@
             // 
             this.txtResult.AutoSize = true;
             this.txtResult.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtResult.Location = new System.Drawing.Point(155, 166);
+            this.txtResult.Location = new System.Drawing.Point(155, 180);
             this.txtResult.Name = "txtResult";
             this.txtResult.Size = new System.Drawing.Size(0, 20);
             this.txtResult.TabIndex = 2;
@@ -96,7 +98,7 @@
             // btnGenerate
             // 
             this.btnGenerate.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnGenerate.Location = new System.Drawing.Point(489, 153);
+            this.btnGenerate.Location = new System.Drawing.Point(489, 167);
             this.btnGenerate.Name = "btnGenerate";
             this.btnGenerate.Size = new System.Drawing.Size(168, 39);
             this.btnGenerate.TabIndex = 3;
@@ -108,11 +110,30 @@
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(90, 113);
+            this.label2.Location = new System.Drawing.Point(90, 127);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(58, 20);
             this.label2.TabIndex = 2;
             this.label2.Text = "Output";
+            // 
+            // txtKey
+            // 
+            this.txtKey.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtKey.Location = new System.Drawing.Point(153, 24);
+            this.txtKey.Name = "txtKey";
+            this.txtKey.Size = new System.Drawing.Size(504, 29);
+            this.txtKey.TabIndex = 1;
+            this.txtKey.Text = "Asset Type,Qty,Progress,Shipment";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label3.Location = new System.Drawing.Point(101, 30);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(43, 20);
+            this.label3.TabIndex = 2;
+            this.label3.Text = "Keys";
             // 
             // Form1
             // 
@@ -123,12 +144,14 @@
             this.Controls.Add(this.txtResult);
             this.Controls.Add(this.txtOutputPath);
             this.Controls.Add(this.label2);
+            this.Controls.Add(this.label3);
             this.Controls.Add(this.label1);
+            this.Controls.Add(this.txtKey);
             this.Controls.Add(this.btnOutput);
             this.Controls.Add(this.txtPath);
             this.Controls.Add(this.btnOpen);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "Inventory Summary Report Generator";
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -144,6 +167,8 @@
         private System.Windows.Forms.Label txtResult;
         private System.Windows.Forms.Button btnGenerate;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TextBox txtKey;
+        private System.Windows.Forms.Label label3;
     }
 }
 

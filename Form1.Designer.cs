@@ -88,7 +88,7 @@
             // 
             this.txtResult.AutoSize = true;
             this.txtResult.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtResult.Location = new System.Drawing.Point(316, 166);
+            this.txtResult.Location = new System.Drawing.Point(155, 166);
             this.txtResult.Name = "txtResult";
             this.txtResult.Size = new System.Drawing.Size(0, 20);
             this.txtResult.TabIndex = 2;

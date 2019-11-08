@@ -120,9 +120,7 @@ namespace ComputerInventory
 
             //foreach (DataRow record in distinctValues.Rows)
             //{
-            //    Console.WriteLine(record["Shipment"]);
-
-               
+            //    Console.WriteLine(record["Shipment"]);               
             //}
 
             var summary = from rec in dt.AsEnumerable()
@@ -131,15 +129,17 @@ namespace ComputerInventory
                             {
                                 Shipment = grp.Key.Shipment,
                                 Asset = grp.Key.Asset,
-                                Pallet = grp.Sum(r => r.Field<int>("Qty"))
+                                Pallet = grp.Sum(r => r.Field<int>("Qty") * (r.Field<string>("Progress") == "1" ? 1 : 0) ),
+                                Shop = grp.Sum(r => r.Field<int>("Qty") * (r.Field<string>("Progress") == "2" ? 1 : 0)),
+                                Scrap = grp.Sum(r => r.Field<int>("Qty") * (r.Field<string>("Progress") == "3" ? 1 : 0)),
+                                AtHand = grp.Sum(r => r.Field<int>("Qty") * (r.Field<string>("Progress") == "" ? 1 : 0)),
                             };
 
             foreach( var p in summary)
             {
-                Console.WriteLine("{0} - {1} -{2}", p.Shipment, p.Asset, p.Pallet);
+                Console.WriteLine("{0} - {1} - {2} - {3} - {4}", p.Shipment, p.Asset, p.Pallet, p.Shop, p.Scrap, p.AtHand);
             }
-            Console.WriteLine(summary);
-
+            
         }
     }
 

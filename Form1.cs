@@ -1,13 +1,15 @@
-﻿using System;
+﻿using ExcelDataReader;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using IronXL;
+
 
 namespace ComputerInventory
 {
@@ -45,86 +47,85 @@ namespace ComputerInventory
             return retVal;
         }
 
-        public void GenerateSummary(String sourcePath, String destFolder)
+        private String GetString(IExcelDataReader reader, int col)
         {
-            txtResult.Text = ""; 
+            var value = reader.GetValue(col);
+            if (value == null)
+                return "";
 
-            WorkBook workbook = null;
+            return value.ToString();
+        }
 
-            //Supported spreadsheet formats for reading include: XLSX, XLS, CSV and TSV
+        private int GetInt(IExcelDataReader reader, int col)
+        {
+            var value = reader.GetValue(col);
+            if (value == null)
+                return 0;
+
             try
             {
-                workbook = WorkBook.Load(sourcePath);
-            } catch(Exception e)
-            {
-                txtResult.Text = e.ToString() + " - Source File Error!";
-                return;
+                int result = Int32.Parse(value.ToString());
+                return result;
             }
-                        
-            WorkSheet sheet = workbook.WorkSheets.First();
+            catch (FormatException)
+            {
+                return 0;
+            }
+        }
+        public void GenerateSummary(String sourcePath, String destFolder)
+        {
+            txtResult.Text = "";
 
-            String asset_type_col = "B";
-            String qty_col = "N";
-            String progress_col = "Q";
-            String shipment_col = "T";
-
-            // Find Header
-            //foreach (var cell in sheet["A1:Z1"])
-            //{
-            //    if( cell.Text.ToLower().Contains("asset") )
-            //    {
-            //        asset_type_col = ExcelColumnFromNumber(cell.ColumnIndex);
-            //    }
-            //    if (cell.Text.ToLower().Contains("qty"))
-            //    {
-            //        qty_col = ExcelColumnFromNumber(cell.ColumnIndex);
-            //    }
-            //    if (cell.Text.ToLower().Contains("progress"))
-            //    {
-            //        progress_col = ExcelColumnFromNumber(cell.ColumnIndex);
-            //    }
-            //    if (cell.Text.ToLower().Contains("shipment"))
-            //    {
-            //        shipment_col = ExcelColumnFromNumber(cell.ColumnIndex);
-            //    }
-            //}
-
-            //Select cells easily in Excel notation and return the calculated value, date, text or formula
-            int cellValue = sheet["A2"].IntValue;
 
             int row = 2;
 
             DataTable dt = new DataTable();
 
             dt.Clear();
-            
+
             dt.Columns.Add("Asset");
             dt.Columns.Add("Qty", typeof(int));
             dt.Columns.Add("Progress");
             dt.Columns.Add("Shipment");
-
-            while (true)
+            
+            using (var stream = File.Open(sourcePath, FileMode.Open, FileAccess.Read))
             {
-                String date = sheet["A" + row].StringValue;
-                if (date == "")
-                    break;
+                // Auto-detect format, supports:
+                //  - Binary Excel files (2.0-2003 format; *.xls)
+                //  - OpenXml Excel files (2007 format; *.xlsx)
+                using (var reader = ExcelReaderFactory.CreateReader(stream))
+                {
+                    // 1. Use the reader methods
+                    do
+                    {
+                        reader.Read();
+                        while (reader.Read())
+                        {
+                            String date = GetString(reader, 0);
+                            if (date == "")
+                                break;
 
-                String asset_type = sheet[asset_type_col + row].StringValue;
-                int qty = sheet[qty_col + row].IntValue;
-                String progress = sheet[progress_col + row].StringValue;
-                String shipment = sheet[shipment_col + row].StringValue;
-                
-                DataRow record = dt.NewRow();
-                record["Asset"] = asset_type;
-                record["Qty"] = qty;
-                record["Progress"] = progress;
-                record["Shipment"] = shipment.Trim();
+                            String asset_type = GetString(reader, 1);
+                            int qty = GetInt(reader, 13);
+                            String  progress = GetString(reader, 16);                            
+                            String shipment = GetString(reader, 19);                            
+                            
+                            DataRow record = dt.NewRow();
+                            record["Asset"] = asset_type;
+                            record["Qty"] = qty;
+                            record["Progress"] = progress;
+                            record["Shipment"] = shipment.Trim();
 
-                dt.Rows.Add(record);
+                            dt.Rows.Add(record);
 
-                row++;
+                            row++;
+                        }
+                        break;
+                    } while (reader.NextResult());
+                }
             }
-
+                      
+            
             //DataView view = new DataView(dt);
             //DataTable distinctValues = view.ToTable(true, "Shipment");
 
@@ -146,106 +147,106 @@ namespace ComputerInventory
                             };
 
 
-            WorkBook xlsxWorkbook = WorkBook.Create(ExcelFileFormat.XLSX);
-            xlsxWorkbook.Metadata.Author = "Company";
-            //Add a blank WorkSheet
-            WorkSheet xlsSheet = xlsxWorkbook.CreateWorkSheet("summary");
+            //WorkBook xlsxWorkbook = WorkBook.Create(ExcelFileFormat.XLSX);
+            //xlsxWorkbook.Metadata.Author = "Company";
+            ////Add a blank WorkSheet
+            //WorkSheet xlsSheet = xlsxWorkbook.CreateWorkSheet("summary");
 
-            //Add data and styles to the new worksheet
-            xlsSheet["A1"].Value = "Shipment ID";
-            xlsSheet["B1"].Value = "Asset Type";
-            xlsSheet["C1"].Value = "Pallet";
-            xlsSheet["D1"].Value = "Shop";
-            xlsSheet["E1"].Value = "Scrap";
-            xlsSheet["F1"].Value = "At Hand";
-
-
-            WorkBook xlsxWorkbook_client = null;
-            WorkSheet xlsSheet_client = null;
+            ////Add data and styles to the new worksheet
+            //xlsSheet["A1"].Value = "Shipment ID";
+            //xlsSheet["B1"].Value = "Asset Type";
+            //xlsSheet["C1"].Value = "Pallet";
+            //xlsSheet["D1"].Value = "Shop";
+            //xlsSheet["E1"].Value = "Scrap";
+            //xlsSheet["F1"].Value = "At Hand";
 
 
-
-            String prevShipment = "";
-            String ship_id = "";
-            row = 2;
-            foreach( var p in summary)
-            {
-                if (prevShipment != p.Shipment)
-                {
-                    ship_id = p.Shipment;
-
-                    try
-                    {
-                        if(xlsxWorkbook_client != null)
-                        {
-                            xlsxWorkbook_client.SaveAs(destFolder + "\\" + prevShipment + ".xlsx");
-                            xlsxWorkbook_client.Close();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                    }
-
-                    xlsxWorkbook_client = WorkBook.Create(ExcelFileFormat.XLSX);
-                    xlsxWorkbook_client.Metadata.Author = "Company";
-                    //Add a blank WorkSheet
-                    xlsSheet_client = xlsxWorkbook_client.CreateWorkSheet("summary");
-
-                    //Add data and styles to the new worksheet
-                    xlsSheet_client["A1"].Value = "Shipment ID";
-                    xlsSheet_client["B1"].Value = "Asset Type";
-                    xlsSheet_client["C1"].Value = "Pallet";
-                    xlsSheet_client["D1"].Value = "Shop";
-                    xlsSheet_client["E1"].Value = "Scrap";
-                    xlsSheet_client["F1"].Value = "At Hand";
-                }
-                else
-                    ship_id = "";
-
-                xlsSheet["A" + row].Value = ship_id;
-                xlsSheet["B" + row].Value = p.Asset;
-                xlsSheet["C" + row].Value = p.Pallet;
-                xlsSheet["D" + row].Value = p.Shop;
-                xlsSheet["E" + row].Value = p.Scrap;
-                xlsSheet["F" + row].Value = p.AtHand;
-
-                xlsSheet_client["A" + row].Value = ship_id;
-                xlsSheet_client["B" + row].Value = p.Asset;
-                xlsSheet_client["C" + row].Value = p.Pallet;
-                xlsSheet_client["D" + row].Value = p.Shop;
-                xlsSheet_client["E" + row].Value = p.Scrap;
-                xlsSheet_client["F" + row].Value = p.AtHand;
-
-                prevShipment = p.Shipment;
-
-                Console.WriteLine("{0} - {1} - {2} - {3} - {4}", p.Shipment, p.Asset, p.Pallet, p.Shop, p.Scrap, p.AtHand);
-
-                row++;
-            }
-
-            try
-            {
-                if (xlsxWorkbook_client != null)
-                {
-                    xlsxWorkbook_client.SaveAs(destFolder + "\\" + prevShipment + ".xlsx");
-                    xlsxWorkbook_client.Close();
-                }
-            }
-            catch (Exception ex)
-            {
-            }
+            //WorkBook xlsxWorkbook_client = null;
+            //WorkSheet xlsSheet_client = null;
 
 
-            //Save the excel file
-            try
-            {
-                xlsxWorkbook.SaveAs(destFolder + "\\total_summary.xlsx");
-                xlsxWorkbook.Close();
-                txtResult.Text = "Summary is generated!!!";
-            } catch(Exception e)
-            {
-                txtResult.Text = "Output Directory Error!";
-            }            
+
+            //String prevShipment = "";
+            //String ship_id = "";
+            //row = 2;
+            //foreach( var p in summary)
+            //{
+            //    if (prevShipment != p.Shipment)
+            //    {
+            //        ship_id = p.Shipment;
+
+            //        try
+            //        {
+            //            if(xlsxWorkbook_client != null)
+            //            {
+            //                xlsxWorkbook_client.SaveAs(destFolder + "\\" + prevShipment + ".xlsx");
+            //                xlsxWorkbook_client.Close();
+            //            }
+            //        }
+            //        catch (Exception ex)
+            //        {
+            //        }
+
+            //        xlsxWorkbook_client = WorkBook.Create(ExcelFileFormat.XLSX);
+            //        xlsxWorkbook_client.Metadata.Author = "Company";
+            //        //Add a blank WorkSheet
+            //        xlsSheet_client = xlsxWorkbook_client.CreateWorkSheet("summary");
+
+            //        //Add data and styles to the new worksheet
+            //        xlsSheet_client["A1"].Value = "Shipment ID";
+            //        xlsSheet_client["B1"].Value = "Asset Type";
+            //        xlsSheet_client["C1"].Value = "Pallet";
+            //        xlsSheet_client["D1"].Value = "Shop";
+            //        xlsSheet_client["E1"].Value = "Scrap";
+            //        xlsSheet_client["F1"].Value = "At Hand";
+            //    }
+            //    else
+            //        ship_id = "";
+
+            //    xlsSheet["A" + row].Value = ship_id;
+            //    xlsSheet["B" + row].Value = p.Asset;
+            //    xlsSheet["C" + row].Value = p.Pallet;
+            //    xlsSheet["D" + row].Value = p.Shop;
+            //    xlsSheet["E" + row].Value = p.Scrap;
+            //    xlsSheet["F" + row].Value = p.AtHand;
+
+            //    xlsSheet_client["A" + row].Value = ship_id;
+            //    xlsSheet_client["B" + row].Value = p.Asset;
+            //    xlsSheet_client["C" + row].Value = p.Pallet;
+            //    xlsSheet_client["D" + row].Value = p.Shop;
+            //    xlsSheet_client["E" + row].Value = p.Scrap;
+            //    xlsSheet_client["F" + row].Value = p.AtHand;
+
+            //    prevShipment = p.Shipment;
+
+            //    Console.WriteLine("{0} - {1} - {2} - {3} - {4}", p.Shipment, p.Asset, p.Pallet, p.Shop, p.Scrap, p.AtHand);
+
+            //    row++;
+            //}
+
+            //try
+            //{
+            //    if (xlsxWorkbook_client != null)
+            //    {
+            //        xlsxWorkbook_client.SaveAs(destFolder + "\\" + prevShipment + ".xlsx");
+            //        xlsxWorkbook_client.Close();
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //}
+
+
+            ////Save the excel file
+            //try
+            //{
+            //    xlsxWorkbook.SaveAs(destFolder + "\\total_summary.xlsx");
+            //    xlsxWorkbook.Close();
+            //    txtResult.Text = "Summary is generated!!!";
+            //} catch(Exception e)
+            //{
+            //    txtResult.Text = "Output Directory Error!";
+            //}            
         }
 
         private void btnOpen_Click(object sender, EventArgs e)
